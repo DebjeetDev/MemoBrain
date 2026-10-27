@@ -66,8 +66,26 @@ closeBtn.forEach((btn) => {
 // ---- FLIP CARDS ----
 // Event delegation on #cardsGrid
 // delete-btn click pe flip mat ho — e.target.closest('.delete-btn') check karo
+const cardsGrid = document.querySelector("#cardsGrid");
+function deleteCard(id) {
+  //Delete from ui
+ document.querySelector(`.flip-card[data-id="${id}"]`).remove();
 
+ //delete from storage
 
+}
+
+cardsGrid.addEventListener("click", (e) => {
+  const deleteBtn = e.target.closest(".delete-btn");
+  if(deleteBtn){
+   const cardId = deleteBtn.dataset.id
+   return deleteCard(cardId)
+  }
+  const card = e.target.closest('.flip-card')
+  if(card) {
+  card.classList.toggle('flipped');
+  }
+});
 
 // ---- SAVE CARD ----
 // Validate → localStorage push → DOM insert → modal close → toast → stats update
