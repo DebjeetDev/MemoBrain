@@ -63,15 +63,15 @@ closeBtn.forEach((btn) => {
 
 // ---- FLIP CARDS ----
 function deleteCard(id) {
- if(!id){
-  console.warn("id not come!")
-  showToast("something wrong!", "error");
-  return
- }
- cards = cards.filter((c)=>c.id !== id);
- localStorage.setItem("memoBrain",JSON.stringify(cards));
- document.querySelector(`.flip-card[data-id="${id}"]`).remove();
- showToast("card deleted successfully");
+  if (!id) {
+    console.warn("id not come!");
+    showToast("something wrong!", "error");
+    return;
+  }
+  cards = cards.filter((c) => c.id !== id);
+  localStorage.setItem("memoBrain", JSON.stringify(cards));
+  document.querySelector(`.flip-card[data-id="${id}"]`).remove();
+  showToast("card deleted successfully");
 }
 
 const cardsGrid = document.querySelector("#cardsGrid");
@@ -91,9 +91,86 @@ cardsGrid.addEventListener("click", (e) => {
 // ---- SAVE CARD ----
 // Validate → localStorage push → DOM insert → modal close → toast → stats update
 
-// ---- LOAD CARDS ----
-// localStorage se load + render (sample cards replace ya keep — teri choice)
+function createCardHTML(card) {
+  const { id, front, back, category } = card;
+  return `
+    <div class="flip-card" data-id="${id}">
+          <div class="flip-inner">
+            <div class="flip-front">
+              <div class="flip-top">
+                <span class="cat-tag">
+                  <i data-lucide="code-2"></i>
+                  ${category}
+                </span>
+                <div class="card-menu">
+                  <button class="btn btn-ghost btn-icon delete-btn" data-id="${id}">
+                    <i data-lucide="trash-2"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="flip-body">
+                <p class="flip-question">${front}</p>
+              </div>
+              <div class="flip-footer">
+                <span class="flip-hint">
+                  <i data-lucide="rotate-cw"></i>
+                  Click to flip
+                </span>
+              </div>
+            </div>
+            <div class="flip-back">
+              <div class="flip-top">
+                <span class="flip-answer-label">Answer</span>
+              </div>
+              <div class="flip-body">
+                <p class="flip-answer">${back}</p>
+              </div>
+              <div class="flip-footer">
+                <span class="flip-hint">
+                  <i data-lucide="rotate-cw"></i>
+                  Flip back
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+  `;
+}
+function saveCard(data) {
+  const { front, back, category } = data;
+  if (front === "" || back === "") {
+    showToast("Please fill all fields!", "error");
+    return;
+  }
+  const createCards = {
+    id: Date.now().toString(),
+    front,
+    back,
+    category,
+  };
+  cards.push(createCards);
+  localStorage.setItem("memoBrain", JSON.stringify(cards));
+  loadCards();
+  document.querySelector("#createModal").classList.remove("open");
+  showToast("Card saved!");
+}
+function loadCards() {
+  cardsGrid.innerHTML = ""; // pehle clear karo
+  cards.forEach((card) => {
+    cardsGrid.insertAdjacentHTML("beforeend", createCardHTML(card));
+  });
+  lucide.createIcons();
+}
 
+
+document.querySelector("#saveCardBtn").addEventListener("click", () => {
+  const front = document.querySelector("#cardQuestion").value.trim();
+  const back = document.querySelector("#cardAnswer").value.trim();
+  const category = document.querySelector("#cardCategory").value;
+  saveCard({ front, back, category });
+});
+
+loadCards();
 // ---- FILTER / SEARCH / DELETE / STATS / RECENT ----
 
 // ---- QUIZ MODE SELECTOR / START / API / REVEAL / KNOW / NOPE ----
