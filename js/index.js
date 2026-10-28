@@ -1,8 +1,6 @@
 lucide.createIcons();
 
-// ================================================
-// BHAI — YAHAN SE TERA JS SHURU HOGA
-// ================================================
+let cards = JSON.parse(localStorage.getItem("memoBrain") || "[]");
 
 // ---- NAVIGATION ----
 const navItems = document.querySelectorAll(".nav-item");
@@ -64,26 +62,29 @@ closeBtn.forEach((btn) => {
 });
 
 // ---- FLIP CARDS ----
-// Event delegation on #cardsGrid
-// delete-btn click pe flip mat ho — e.target.closest('.delete-btn') check karo
-const cardsGrid = document.querySelector("#cardsGrid");
 function deleteCard(id) {
-  //Delete from ui
+ if(!id){
+  console.warn("id not come!")
+  showToast("something wrong!", "error");
+  return
+ }
+ cards = cards.filter((c)=>c.id !== id);
+ localStorage.setItem("memoBrain",JSON.stringify(cards));
  document.querySelector(`.flip-card[data-id="${id}"]`).remove();
-
- //delete from storage
-
+ showToast("card deleted successfully");
 }
+
+const cardsGrid = document.querySelector("#cardsGrid");
 
 cardsGrid.addEventListener("click", (e) => {
   const deleteBtn = e.target.closest(".delete-btn");
-  if(deleteBtn){
-   const cardId = deleteBtn.dataset.id
-   return deleteCard(cardId)
+  if (deleteBtn) {
+    const cardId = deleteBtn.dataset.id;
+    return deleteCard(cardId);
   }
-  const card = e.target.closest('.flip-card')
-  if(card) {
-  card.classList.toggle('flipped');
+  const card = e.target.closest(".flip-card");
+  if (card) {
+    card.classList.toggle("flipped");
   }
 });
 
