@@ -11,6 +11,7 @@ navItems.forEach((item) => {
     const screenName = item.dataset.screen;
     navItems.forEach((i) => i.classList.remove("active"));
     screens.forEach((s) => s.classList.remove("active"));
+    if(!screenName) return
     item.classList.add("active");
     document.querySelector(`#screen-${screenName}`).classList.add("active");
     lucide.createIcons();
@@ -33,10 +34,6 @@ overlay.addEventListener("click", () => {
 });
 
 // ---- MODAL ----
-// Open: #heroCreateBtn, #cardsCreateBtn, #sidebarCreateBtn
-// Close: #closeModal, #cancelModalBtn
-// Toggle class: 'open' on #createModal
-
 //open
 const heroCreateBtn = document.getElementById("heroCreateBtn");
 const cardsCreateBtn = document.querySelector("#cardsCreateBtn");
@@ -68,17 +65,17 @@ function deleteCard(id) {
     showToast("something wrong!", "error");
     return;
   }
-  if(!cards.some((c)=> c.id === id)){
-    return showToast("id not found", "error")
+  if (!cards.some((c) => c.id === id)) {
+    return showToast("id not found", "error");
   }
   cards = cards.filter((c) => c.id !== id);
   localStorage.setItem("memoBrain", JSON.stringify(cards));
   document.querySelector(`.flip-card[data-id="${id}"]`).remove();
   showToast("card deleted successfully");
+  updateStats();
 }
 
 const cardsGrid = document.querySelector("#cardsGrid");
-
 cardsGrid.addEventListener("click", (e) => {
   const deleteBtn = e.target.closest(".delete-btn");
   if (deleteBtn) {
@@ -156,20 +153,20 @@ function saveCard(data) {
   loadCards();
   document.querySelector("#createModal").classList.remove("open");
   showToast("Card saved!");
+  document.querySelector("#cardQuestion").value = "";
+  document.querySelector("#cardAnswer").value = "";
+  document.querySelector("#cardCategory").value = "JavaScript";
+  updateStats()
 }
 function loadCards() {
   cardsGrid.innerHTML = ""; // pehle clear karo
   cards.forEach((card) => {
     cardsGrid.insertAdjacentHTML("beforeend", createCardHTML(card));
   });
+  updateStats();
   lucide.createIcons();
 }
-
 document.querySelector("#saveCardBtn").addEventListener("click", () => {
-  //reset
-  document.querySelector("#cardQuestion").value = "";
-  document.querySelector("#cardAnswer").value = "";
-  document.querySelector("#cardCategory").value = "";
   //new
   const front = document.querySelector("#cardQuestion").value.trim();
   const back = document.querySelector("#cardAnswer").value.trim();
@@ -178,8 +175,33 @@ document.querySelector("#saveCardBtn").addEventListener("click", () => {
 });
 
 loadCards();
-// ---- FILTER / SEARCH / DELETE / STATS / RECENT ----
 
+// ---- FILTER / SEARCH / DELETE / STATS / RECENT ----
+function updateStats() {
+  const category = cards.reduce((acc, cur) => {
+    let key = cur.category;
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+
+  const bestCategory = Object.keys(category).length
+    ? Object.keys(category).reduce((a, b) =>
+        category[a] > category[b] ? a : b,
+      )
+    : "—";
+
+  const updates = {
+    ".js-total": cards.length,
+    ".js-categories": Object.keys(category).length,
+    ".js-best": bestCategory,
+  };
+
+  Object.entries(updates).forEach(([selector, value]) => {
+    document
+      .querySelectorAll(selector)
+      .forEach((el) => (el.textContent = value));
+  });
+}
 
 // ---- QUIZ MODE SELECTOR / START / API / REVEAL / KNOW / NOPE ----
 

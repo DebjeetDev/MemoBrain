@@ -653,7 +653,7 @@
 
     .stat-number {
       font-family: 'JetBrains Mono', monospace;
-      font-size: 1.75rem;
+      font-size: 1.50rem;
       font-weight: 700;
       letter-spacing: -1px;
       color: var(--text);
@@ -1161,6 +1161,9 @@
 
     /* Empty state */
     .empty-state {
+      display: flex;
+     flex-direction: column;
+     align-items: center;
       grid-column: 1 / -1;
       text-align: center;
       padding: 64px 24px;
@@ -1887,7 +1890,7 @@
       <li class="nav-item" data-screen="cards">
         <i data-lucide="layers"></i>
         My Cards
-        <span class="nav-badge" id="sidebarCardCount">0</span>
+        <span class="nav-badge js-total" id="sidebarCardCount">0</span>
       </li>
       <li class="nav-item" data-screen="quiz">
         <i data-lucide="graduation-cap"></i>
@@ -1910,8 +1913,8 @@
         <div class="sidebar-footer-fill" id="sidebarProgress"></div>
       </div>
       <div class="sidebar-footer-stats">
-        <span class="sidebar-footer-stat">Cards: <span id="sfTotal">0</span></span>
-        <span class="sidebar-footer-stat">Best: <span id="sfBest">—</span></span>
+        <span class="sidebar-footer-stat">Cards: <span id="sfTotal" class="js-total">0</span></span>
+        <span class="sidebar-footer-stat">Best: <span id="sfBest" class="js-best">—</span></span>
       </div>
     </div>
 
@@ -1953,7 +1956,7 @@
               Start Quiz
             </button>
           </div>
-        </div>8
+        </div>
 
         <div class="hero-visual">
           <div class="stack-card"><i data-lucide="code-2"></i></div>
@@ -1975,7 +1978,7 @@
               Live
             </div>
           </div>
-          <div class="stat-number" id="statTotal">0</div>
+          <div class="stat-number js-total" id="statTotal">0</div>
           <div class="stat-label">Total Cards</div>
         </div>
 
@@ -1985,7 +1988,7 @@
               <i data-lucide="trophy"></i>
             </div>
           </div>
-          <div class="stat-number" id="statBest">—</div>
+          <div class="stat-number js-best" id="statBest">—</div>
           <div class="stat-label">Best Score</div>
         </div>
 
@@ -1995,7 +1998,7 @@
               <i data-lucide="folder"></i>
             </div>
           </div>
-          <div class="stat-number" id="statCategories">0</div>
+          <div class="stat-number js-categories" id="statCategories">0</div>
           <div class="stat-label">Categories</div>
         </div>
 
