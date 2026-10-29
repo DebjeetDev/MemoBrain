@@ -68,6 +68,9 @@ function deleteCard(id) {
     showToast("something wrong!", "error");
     return;
   }
+  if(!cards.some((c)=> c.id === id)){
+    return showToast("id not found", "error")
+  }
   cards = cards.filter((c) => c.id !== id);
   localStorage.setItem("memoBrain", JSON.stringify(cards));
   document.querySelector(`.flip-card[data-id="${id}"]`).remove();
@@ -138,12 +141,12 @@ function createCardHTML(card) {
 }
 function saveCard(data) {
   const { front, back, category } = data;
-  if (front === "" || back === "") {
+  if (!front || !back) {
     showToast("Please fill all fields!", "error");
     return;
   }
   const createCards = {
-    id: Date.now().toString(),
+    id: crypto.randomUUID(),
     front,
     back,
     category,
