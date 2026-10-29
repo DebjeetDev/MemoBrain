@@ -165,8 +165,12 @@ function loadCards() {
   lucide.createIcons();
 }
 
-
 document.querySelector("#saveCardBtn").addEventListener("click", () => {
+  //reset
+  document.querySelector("#cardQuestion").value = "";
+  document.querySelector("#cardAnswer").value = "";
+  document.querySelector("#cardCategory").value = "";
+  //new
   const front = document.querySelector("#cardQuestion").value.trim();
   const back = document.querySelector("#cardAnswer").value.trim();
   const category = document.querySelector("#cardCategory").value;
@@ -175,6 +179,7 @@ document.querySelector("#saveCardBtn").addEventListener("click", () => {
 
 loadCards();
 // ---- FILTER / SEARCH / DELETE / STATS / RECENT ----
+
 
 // ---- QUIZ MODE SELECTOR / START / API / REVEAL / KNOW / NOPE ----
 
