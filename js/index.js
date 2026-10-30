@@ -159,13 +159,18 @@ function saveCard(data) {
   updateStats()
 }
 function loadCards() {
-  cardsGrid.innerHTML = ""; // pehle clear karo
-  cards.forEach((card) => {
-    cardsGrid.insertAdjacentHTML("beforeend", createCardHTML(card));
-  });
+  renderCards(cards)
   updateStats();
-  lucide.createIcons();
 }
+
+function renderCards(arr) {
+  cardsGrid.innerHTML = "";
+    arr.forEach((card) => {
+      cardsGrid.insertAdjacentHTML("beforeend", createCardHTML(card));
+    });
+    lucide.createIcons()
+}
+
 document.querySelector("#saveCardBtn").addEventListener("click", () => {
   //new
   const front = document.querySelector("#cardQuestion").value.trim();
@@ -202,6 +207,31 @@ function updateStats() {
       .forEach((el) => (el.textContent = value));
   });
 }
+function debouncing(fnc , delay){
+  let timeId;
+  return function(...arg){
+    clearTimeout(timeId)
+    timeId = setTimeout(()=>{
+       fnc.apply(this , arg)
+    },delay)
+  }
+
+}
+function handleSearch(e){
+ const value = e.target.value.trim().toLowerCase();
+ if(!value) return loadCards()
+ const matches = cards.filter(c => {
+   return (
+     c.front.toLowerCase().includes(value) ||
+     c.back.toLowerCase().includes(value) ||
+     c.category.toLowerCase().includes(value)
+   );
+ })
+ renderCards(matches)
+}
+const debouncedSearch = debouncing(handleSearch , 300)
+
+document.querySelector("#searchInput").addEventListener("input",debouncedSearch);
 
 // ---- QUIZ MODE SELECTOR / START / API / REVEAL / KNOW / NOPE ----
 
