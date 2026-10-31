@@ -256,6 +256,80 @@ const recents = cards.slice(-3)
 }
 
 // ---- QUIZ MODE SELECTOR / START / API / REVEAL / KNOW / NOPE ----
+async function genQuizByApi(numberOfquestion, Difficulty, signal) {
+  try {
+    const res = await fetch(
+      `https://opentdb.com/api.php?amount=${numberOfquestion}&category=18&difficulty=${Difficulty}`,{signal},
+    );
+    if (!res.ok) {
+      return showToast("Something went wrong!", "error");
+    }
+    const data = await res.json();
+    return data.results;
+  } catch (error) {
+    if (error.name === "AbortError") return;
+    console.log("err", error);
+  }
+}
+
+document.querySelector(".quiz-modes").addEventListener("click", (e)=>{
+  const selectedCard = e.target.closest(".mode-card");
+  if (!selectedCard) return;
+  const quizMode = selectedCard.dataset.mode;
+  console.log(quizMode);
+ document
+   .querySelectorAll(".mode-card")
+   .forEach((c) => c.classList.remove("selected"));
+  selectedCard.classList.add("selected");
+});
+let controller = null;
+const startQuiz = async (e)=>{
+ if(controller) controller.abort()
+  controller = new AbortController()
+
+  const btn = document.querySelector("#startQuizBtn");
+  btn.disabled = true;
+  btn.textContent = "Loading...";
+  const mode = document.querySelector(".mode-card.selected").dataset.mode
+  const count = document.querySelector("#quizCount").value
+  const difficulty = document.querySelector("#quizDifficulty").value
+  const category = document.querySelector("#quizCategory").value
+
+  if (mode === "my-cards") {
+   return showToast("coming soon !");
+  }
+
+  const quiz = await genQuizByApi(count , difficulty , controller.signal)
+  if (!quiz) return;
+   btn.disabled = false;
+   btn.textContent = "Start Quiz";
+  renderQuizs(quiz)
+}
+document.querySelector("#startQuizBtn").addEventListener("click", startQuiz);
+
+function renderQuizs(quiz) {
+  // 1. Setup hide — Active show
+  document.querySelector("#quizSetupArea").style.display = "none";
+  document.querySelector("#quizActiveArea").style.display = "block";
+
+  // 2. Progress reset
+  document.querySelector("#quizProgressFill").style.width = "0%";
+  document.querySelector("#progressLabel").textContent =
+    `Question 1 of ${quiz.length}`;
+  document.querySelector("#progressPercent").textContent = "0%";
+
+  // 3. Score reset
+  document.querySelector("#quizScore").textContent = "0";
+  document.querySelector("#quizProgress").textContent = `1/${quiz.length}`;
+
+  // 4. Answer box hide
+  document.querySelector("#quizAnswerBox").classList.remove("show");
+
+  // 5. Pehla question render
+
+  // ← TERA KAAM YAHAN
+}
+
 
 // ---- TIMER / RESULT / RETRY / QUIT ----
 
