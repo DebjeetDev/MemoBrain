@@ -11,7 +11,7 @@ navItems.forEach((item) => {
     const screenName = item.dataset.screen;
     navItems.forEach((i) => i.classList.remove("active"));
     screens.forEach((s) => s.classList.remove("active"));
-    if(!screenName) return
+    if (!screenName) return;
     item.classList.add("active");
     document.querySelector(`#screen-${screenName}`).classList.add("active");
     lucide.createIcons();
@@ -57,7 +57,8 @@ closeBtn.forEach((btn) => {
     document.querySelector("#createModal").classList.remove("open");
   });
 });
-
+const cardsGrid = document.querySelector("#cardsGrid");
+const recentCardsList = document.querySelector("#recentCardsList");
 // ---- FLIP CARDS ----
 function deleteCard(id) {
   if (!id) {
@@ -72,10 +73,11 @@ function deleteCard(id) {
   localStorage.setItem("memoBrain", JSON.stringify(cards));
   document.querySelector(`.flip-card[data-id="${id}"]`).remove();
   showToast("card deleted successfully");
+  recentCard()
   updateStats();
 }
 
-const cardsGrid = document.querySelector("#cardsGrid");
+
 cardsGrid.addEventListener("click", (e) => {
   const deleteBtn = e.target.closest(".delete-btn");
   if (deleteBtn) {
@@ -156,19 +158,20 @@ function saveCard(data) {
   document.querySelector("#cardQuestion").value = "";
   document.querySelector("#cardAnswer").value = "";
   document.querySelector("#cardCategory").value = "JavaScript";
-  updateStats()
-}
-function loadCards() {
-  renderCards(cards)
   updateStats();
 }
+function loadCards() {
+  renderCards(cards , cardsGrid);
+  updateStats();
+  recentCard()
+}
 
-function renderCards(arr) {
-  cardsGrid.innerHTML = "";
-    arr.forEach((card) => {
-      cardsGrid.insertAdjacentHTML("beforeend", createCardHTML(card));
-    });
-    lucide.createIcons()
+function renderCards(arr, place) {
+  place.innerHTML = "";
+  arr.forEach((card) => {
+    place.insertAdjacentHTML("beforeend", createCardHTML(card));
+  });
+  lucide.createIcons();
 }
 
 document.querySelector("#saveCardBtn").addEventListener("click", () => {
@@ -191,8 +194,8 @@ function updateStats() {
 
   const bestCategory = Object.keys(category).length
     ? Object.keys(category).reduce((a, b) =>
-        category[a] > category[b] ? a : b,
-      )
+      category[a] > category[b] ? a : b,
+    )
     : "—";
 
   const updates = {
@@ -207,31 +210,50 @@ function updateStats() {
       .forEach((el) => (el.textContent = value));
   });
 }
-function debouncing(fnc , delay){
+function debouncing(fnc, delay) {
   let timeId;
-  return function(...arg){
-    clearTimeout(timeId)
-    timeId = setTimeout(()=>{
-       fnc.apply(this , arg)
-    },delay)
-  }
-
+  return function (...arg) {
+    clearTimeout(timeId);
+    timeId = setTimeout(() => {
+      fnc.apply(this, arg);
+    }, delay);
+  };
 }
-function handleSearch(e){
- const value = e.target.value.trim().toLowerCase();
- if(!value) return loadCards()
- const matches = cards.filter(c => {
-   return (
-     c.front.toLowerCase().includes(value) ||
-     c.back.toLowerCase().includes(value) ||
-     c.category.toLowerCase().includes(value)
-   );
- })
- renderCards(matches)
+function handleSearch(e) {
+  const value = e.target.value.trim().toLowerCase();
+  if (!value) return loadCards();
+  const matches = cards.filter((c) => {
+    return (
+      c.front.toLowerCase().includes(value) ||
+      c.back.toLowerCase().includes(value) ||
+      c.category.toLowerCase().includes(value)
+    );
+  });
+  renderCards(matches , cardsGrid);
 }
-const debouncedSearch = debouncing(handleSearch , 300)
+const debouncedSearch = debouncing(handleSearch, 300);
 
-document.querySelector("#searchInput").addEventListener("input",debouncedSearch);
+document
+  .querySelector("#searchInput")
+  .addEventListener("input", debouncedSearch);
+
+const filterAllchip = document.querySelectorAll(".chip");
+
+document.querySelector("#filterChips").addEventListener("click", (e) => {
+  const targetchip = e.target.closest(".chip");
+  if (!targetchip) return;
+  const chips = targetchip.dataset.filter;
+  filterAllchip.forEach((c) => c.classList.remove("active"));
+  targetchip.classList.add("active");
+  if (chips === "all") return loadCards();
+  const filterBychip = cards.filter((c) => c.category === chips);
+  renderCards(filterBychip , cardsGrid);
+});
+
+function recentCard(){
+const recents = cards.slice(-3)
+ renderCards(recents, recentCardsList);
+}
 
 // ---- QUIZ MODE SELECTOR / START / API / REVEAL / KNOW / NOPE ----
 
