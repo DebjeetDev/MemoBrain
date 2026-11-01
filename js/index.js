@@ -1,7 +1,6 @@
 lucide.createIcons();
 
 let cards = JSON.parse(localStorage.getItem("memoBrain") || "[]");
-
 // ---- NAVIGATION ----
 const navItems = document.querySelectorAll(".nav-item");
 const screens = document.querySelectorAll(".screen");
@@ -76,7 +75,6 @@ function deleteCard(id) {
   recentCard()
   updateStats();
 }
-
 
 cardsGrid.addEventListener("click", (e) => {
   const deleteBtn = e.target.closest(".delete-btn");
@@ -161,7 +159,7 @@ function saveCard(data) {
   updateStats();
 }
 function loadCards() {
-  renderCards(cards , cardsGrid);
+  renderCards(cards, cardsGrid);
   updateStats();
   recentCard()
 }
@@ -229,7 +227,7 @@ function handleSearch(e) {
       c.category.toLowerCase().includes(value)
     );
   });
-  renderCards(matches , cardsGrid);
+  renderCards(matches, cardsGrid);
 }
 const debouncedSearch = debouncing(handleSearch, 300);
 
@@ -247,67 +245,147 @@ document.querySelector("#filterChips").addEventListener("click", (e) => {
   targetchip.classList.add("active");
   if (chips === "all") return loadCards();
   const filterBychip = cards.filter((c) => c.category === chips);
-  renderCards(filterBychip , cardsGrid);
+  renderCards(filterBychip, cardsGrid);
 });
 
-function recentCard(){
-const recents = cards.slice(-3)
- renderCards(recents, recentCardsList);
+function recentCard() {
+  const recents = cards.slice(-3)
+  renderCards(recents, recentCardsList);
 }
 
 // ---- QUIZ MODE SELECTOR / START / API / REVEAL / KNOW / NOPE ----
-async function genQuizByApi(numberOfquestion, Difficulty, signal) {
+async function genQuizByApi(numberOfquestion, Difficulty, combinedSignal) {
+  const errors = {
+    1: "Not enough question available",
+    2: "Invalid parameters!",
+    5: "Too many requests - wait 5 seconds!",
+  };
   try {
+    ;
     const res = await fetch(
-      `https://opentdb.com/api.php?amount=${numberOfquestion}&category=18&difficulty=${Difficulty}`,{signal},
+      `https://opentdb.com/api.php?amount=${numberOfquestion}&category=18&difficulty=${Difficulty}`,
+      {
+        signal: combinedSignal
+      },
     );
     if (!res.ok) {
-      return showToast("Something went wrong!", "error");
+      console.log("yes")
+      throw new Error(`Server error ${res.status}`);
     }
     const data = await res.json();
+    if (data.response_code !== 0) {
+      showToast(errors[data.response_code] || "something went wrong!", "error");
+      return;
+    }
+    console.log(data.results)
     return data.results;
   } catch (error) {
-    if (error.name === "AbortError") return;
+    if (error.name === "AbortError") {
+      if (controller.signal.aborted) return; // user quit — silent
+      return showToast("Request timed out!", "error"); // timeout
+    }
     console.log("err", error);
+    showToast("Couldn't load questions. Try again.", "error"); // FIX 2
+    return null;
   }
 }
 
-document.querySelector(".quiz-modes").addEventListener("click", (e)=>{
+document.querySelector(".quiz-modes").addEventListener("click", (e) => {
   const selectedCard = e.target.closest(".mode-card");
   if (!selectedCard) return;
   const quizMode = selectedCard.dataset.mode;
   console.log(quizMode);
- document
-   .querySelectorAll(".mode-card")
-   .forEach((c) => c.classList.remove("selected"));
+  document
+    .querySelectorAll(".mode-card")
+    .forEach((c) => c.classList.remove("selected"));
   selectedCard.classList.add("selected");
 });
 let controller = null;
-const startQuiz = async (e)=>{
- if(controller) controller.abort()
-  controller = new AbortController()
+
+const startQuiz = async (e) => {
+  if (controller) controller.abort();
+  controller = new AbortController();
+  const timeoutSignal = AbortSignal.timeout(8000)
+  const combinedSignal = AbortSignal.any([
+    controller.signal,
+    timeoutSignal,
+  ]);
 
   const btn = document.querySelector("#startQuizBtn");
+
   btn.disabled = true;
   btn.textContent = "Loading...";
-  const mode = document.querySelector(".mode-card.selected").dataset.mode
-  const count = document.querySelector("#quizCount").value
-  const difficulty = document.querySelector("#quizDifficulty").value
-  const category = document.querySelector("#quizCategory").value
+  const mode = document.querySelector(".mode-card.selected").dataset.mode;
+  const count = document.querySelector("#quizCount").value;
+  const difficulty = document.querySelector("#quizDifficulty").value;
+  const category = document.querySelector("#quizCategory").value;
 
   if (mode === "my-cards") {
-   return showToast("coming soon !");
+    return showToast("coming soon !");
   }
 
-  const quiz = await genQuizByApi(count , difficulty , controller.signal)
-  if (!quiz) return;
-   btn.disabled = false;
-   btn.textContent = "Start Quiz";
-  renderQuizs(quiz)
+  const quiz = await genQuizByApi(count, difficulty, combinedSignal)
+  if (!quiz || quiz.length === 0) return;
+  btn.disabled = false;
+  btn.textContent = "Start Quiz";
+  renderQuizs(quiz);
 }
 document.querySelector("#startQuizBtn").addEventListener("click", startQuiz);
+let currentIndex = 0;
+let score = 0;
+let quiz = []
+let seconds = 0;
+let timerInterval = null
 
-function renderQuizs(quiz) {
+function decodeHTML(str) {
+  const text = document.createElement("textarea");
+  text.innerHTML = str
+  return text.value
+}
+
+function showQuestion(quiz) {
+  const quizQuestion = decodeHTML(quiz[currentIndex].question);
+  let quesNumber = currentIndex + 1
+  let percent = ((currentIndex + 1) / quiz.length) * 100;
+
+  document.querySelector("#quizScore").textContent = score;
+  document.querySelector("#quizProgress").textContent = `${quesNumber}/${quiz.length}`;
+  document.querySelector("#quizQNum").textContent = `Question-${quesNumber}`;
+  document.querySelector("#quizAnswerBox").classList.remove("show");
+  document.querySelector("#progressLabel").textContent =
+    `Question ${quesNumber} of ${quiz.length}`;
+  document.querySelector("#progressPercent").textContent = `${percent}%`;
+  document.querySelector("#quizProgressFill").style.width = `${percent}%`;
+  document.querySelector("#quizQuestionText").textContent = quizQuestion;
+
+}
+
+document.querySelector("#knowBtn").addEventListener("click", () => {
+  score++;
+  currentIndex++;
+  if (currentIndex === quiz.length) return; // result baad mein
+  showQuestion(quiz);
+});
+
+document.querySelector("#nopeBtn").addEventListener("click", () => {
+  currentIndex++;
+  if (currentIndex === quiz.length) return; // result baad mein
+  showQuestion(quiz);
+});
+
+document.querySelector("#revealBtn").addEventListener("click", () => {
+  document.querySelector("#quizAnswerText").textContent = decodeHTML(
+    quiz[currentIndex].correct_answer,
+  );
+  document.querySelector("#quizAnswerBox").classList.add("show");
+});
+
+function renderQuizs(quizData) {
+  currentIndex = 0;
+  score = 0;
+  clearInterval(timerInterval)
+  seconds = 0
+  quiz = quizData
   // 1. Setup hide — Active show
   document.querySelector("#quizSetupArea").style.display = "none";
   document.querySelector("#quizActiveArea").style.display = "block";
@@ -326,12 +404,16 @@ function renderQuizs(quiz) {
   document.querySelector("#quizAnswerBox").classList.remove("show");
 
   // 5. Pehla question render
-
-  // ← TERA KAAM YAHAN
+  showQuestion(quiz);
+   timerInterval = setInterval(() => {
+    seconds++;
+    let mins = Math.floor(seconds / 60);
+    let secs = seconds % 60;
+    document.querySelector("#quizTimer").textContent =
+      `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }, 1000);
 }
 
-
-// ---- TIMER / RESULT / RETRY / QUIT ----
 
 // ---- TOAST FUNCTION ---- (already ready, use karo poore project mein)
 function showToast(message, type = "success") {
