@@ -61,7 +61,6 @@ const recentCardsList = document.querySelector("#recentCardsList");
 
 function deleteCard(id) {
   if (!id) {
-    console.warn("id not come!");
     showToast("something wrong!", "error");
     return;
   }
@@ -156,7 +155,6 @@ function saveCard(data) {
   document.querySelector("#cardQuestion").value = "";
   document.querySelector("#cardAnswer").value = "";
   document.querySelector("#cardCategory").value = "JavaScript";
-  updateStats();
 }
 function loadCards() {
   renderCards(cards, cardsGrid);
@@ -261,7 +259,6 @@ async function genQuizByApi(numberOfquestion, Difficulty, combinedSignal) {
     5: "Too many requests - wait 5 seconds!",
   };
   try {
-    ;
     const res = await fetch(
       `https://opentdb.com/api.php?amount=${numberOfquestion}&category=18&difficulty=${Difficulty}`,
       {
@@ -269,7 +266,6 @@ async function genQuizByApi(numberOfquestion, Difficulty, combinedSignal) {
       },
     );
     if (!res.ok) {
-      console.log("yes")
       throw new Error(`Server error ${res.status}`);
     }
     const data = await res.json();
@@ -277,14 +273,12 @@ async function genQuizByApi(numberOfquestion, Difficulty, combinedSignal) {
       showToast(errors[data.response_code] || "something went wrong!", "error");
       return;
     }
-    console.log(data.results)
     return data.results;
   } catch (error) {
     if (error.name === "AbortError") {
       if (controller.signal.aborted) return; // user quit — silent
       return showToast("Request timed out!", "error"); // timeout
     }
-    console.log("err", error);
     showToast("Couldn't load questions. Try again.", "error"); // FIX 2
     return null;
   }
@@ -293,8 +287,6 @@ async function genQuizByApi(numberOfquestion, Difficulty, combinedSignal) {
 document.querySelector(".quiz-modes").addEventListener("click", (e) => {
   const selectedCard = e.target.closest(".mode-card");
   if (!selectedCard) return;
-  const quizMode = selectedCard.dataset.mode;
-  console.log(quizMode);
   document
     .querySelectorAll(".mode-card")
     .forEach((c) => c.classList.remove("selected"));
@@ -318,11 +310,13 @@ const startQuiz = async (e) => {
   const mode = document.querySelector(".mode-card.selected").dataset.mode;
   const count = document.querySelector("#quizCount").value;
   const difficulty = document.querySelector("#quizDifficulty").value;
-  const category = document.querySelector("#quizCategory").value;
+ // const category = document.querySelector("#quizCategory").value;
 
   if (mode === "my-cards") {
-    return showToast("coming soon !");
-  }
+  btn.disabled = false;
+  btn.textContent = "Start Quiz";
+  return showToast("coming soon !");
+}
 
   const quiz = await genQuizByApi(count, difficulty, combinedSignal)
   if (!quiz || quiz.length === 0) return;
@@ -417,7 +411,7 @@ function renderQuizs(quizData) {
 function showResult() {
   clearInterval(timerInterval);
   const resultPercent = Math.round((score/quiz.length)*100);
-  const quizTime = document.querySelector("#quizTimer").innerText;
+  const quizTime = document.querySelector("#quizTimer").textContent;
  //show/hind part of ui
  document.querySelector("#quizActiveArea").style.display = "none";
  document.querySelector("#resultArea").classList.add("show");
