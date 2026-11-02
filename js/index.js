@@ -58,7 +58,7 @@ closeBtn.forEach((btn) => {
 });
 const cardsGrid = document.querySelector("#cardsGrid");
 const recentCardsList = document.querySelector("#recentCardsList");
-// ---- FLIP CARDS ----
+
 function deleteCard(id) {
   if (!id) {
     console.warn("id not come!");
@@ -363,13 +363,13 @@ function showQuestion(quiz) {
 document.querySelector("#knowBtn").addEventListener("click", () => {
   score++;
   currentIndex++;
-  if (currentIndex === quiz.length) return; // result baad mein
+  if (currentIndex === quiz.length) return showResult(); // result baad mein
   showQuestion(quiz);
 });
 
 document.querySelector("#nopeBtn").addEventListener("click", () => {
   currentIndex++;
-  if (currentIndex === quiz.length) return; // result baad mein
+  if (currentIndex === quiz.length) return showResult(); // result baad mein
   showQuestion(quiz);
 });
 
@@ -414,6 +414,35 @@ function renderQuizs(quizData) {
   }, 1000);
 }
 
+function showResult() {
+  clearInterval(timerInterval);
+  const resultPercent = Math.round((score/quiz.length)*100);
+  const quizTime = document.querySelector("#quizTimer").innerText;
+ //show/hind part of ui
+ document.querySelector("#quizActiveArea").style.display = "none";
+ document.querySelector("#resultArea").classList.add("show");
+ //update Doms
+ document.querySelector("#resultScore").textContent = `${score}/${quiz.length}`;
+ document.querySelector("#resultPercent").textContent = `${resultPercent}%`;
+ document.querySelector("#resultTime").textContent = quizTime;
+}
+
+document.querySelector("#retryBtn").addEventListener("click",()=>{
+  document.querySelector("#resultArea").classList.remove("show");
+   document.querySelector("#quizSetupArea").style.display = "block";
+});
+
+document.querySelector("#goCards").addEventListener("click",(e)=>{
+   document.querySelector("#cardnav").click();
+});
+
+document.querySelector("#quitQuizBtn").addEventListener('click',()=>{
+  clearInterval(timerInterval);
+  controller?.abort()
+  document.querySelector("#quizActiveArea").style.display = "none";
+  document.querySelector("#quizSetupArea").style.display = "block";
+
+});
 
 // ---- TOAST FUNCTION ---- (already ready, use karo poore project mein)
 function showToast(message, type = "success") {
