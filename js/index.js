@@ -69,10 +69,8 @@ function deleteCard(id) {
   }
   cards = cards.filter((c) => c.id !== id);
   localStorage.setItem("memoBrain", JSON.stringify(cards));
-  document.querySelector(`.flip-card[data-id="${id}"]`).remove();
   showToast("card deleted successfully");
-  recentCard()
-  updateStats();
+  loadCards();
 }
 
 cardsGrid.addEventListener("click", (e) => {
@@ -159,7 +157,7 @@ function saveCard(data) {
 function loadCards() {
   renderCards(cards, cardsGrid);
   updateStats();
-  recentCard()
+  recentCard();
 }
 
 function renderCards(arr, place) {
