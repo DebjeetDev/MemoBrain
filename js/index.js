@@ -314,12 +314,11 @@ const startQuiz = async (e) => {
   btn.disabled = false;
   btn.textContent = "Start Quiz";
   return showToast("coming soon !");
-}
-
+ }
   const quiz = await genQuizByApi(count, difficulty, combinedSignal)
-  if (!quiz || quiz.length === 0) return;
-  btn.disabled = false;
-  btn.textContent = "Start Quiz";
+    btn.disabled = false;
+    btn.textContent = "Start Quiz";
+   if (!quiz || quiz.length === 0) return;
   renderQuizs(quiz);
 }
 document.querySelector("#startQuizBtn").addEventListener("click", startQuiz);
