@@ -69,10 +69,8 @@ function deleteCard(id) {
   }
   cards = cards.filter((c) => c.id !== id);
   localStorage.setItem("memoBrain", JSON.stringify(cards));
-  document.querySelector(`.flip-card[data-id="${id}"]`).remove();
   showToast("card deleted successfully");
-  recentCard()
-  updateStats();
+  loadCards();
 }
 
 cardsGrid.addEventListener("click", (e) => {
@@ -159,7 +157,7 @@ function saveCard(data) {
 function loadCards() {
   renderCards(cards, cardsGrid);
   updateStats();
-  recentCard()
+  recentCard();
 }
 
 function renderCards(arr, place) {
@@ -316,12 +314,11 @@ const startQuiz = async (e) => {
   btn.disabled = false;
   btn.textContent = "Start Quiz";
   return showToast("coming soon !");
-}
-
+ }
   const quiz = await genQuizByApi(count, difficulty, combinedSignal)
-  if (!quiz || quiz.length === 0) return;
-  btn.disabled = false;
-  btn.textContent = "Start Quiz";
+    btn.disabled = false;
+    btn.textContent = "Start Quiz";
+   if (!quiz || quiz.length === 0) return;
   renderQuizs(quiz);
 }
 document.querySelector("#startQuizBtn").addEventListener("click", startQuiz);
